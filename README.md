@@ -1,12 +1,11 @@
 # Flux
-A clean, minimal Roblox UI library built entirely from scratch in pure Lua. No model assets, no asset IDs required for the library itself — everything is constructed in code.
+A clean, minimal Roblox UI library
 
 Built by [Plasma](https://github.com/PlasmaLMAO).
 
 ---
 
 ## Features
-- Pure Lua — no Roblox model required, works via loadstring
 - Dark minimal aesthetic with a customizable accent color
 - Icon sidebar with tab switching
 - Two-column groupbox layout
