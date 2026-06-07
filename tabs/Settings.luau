@@ -1,5 +1,3 @@
--- settings tab — accent color presets, keybind, config management, about
-
 local Settings = {}
 
 local UserInputService = game:GetService("UserInputService")
@@ -14,18 +12,18 @@ function Settings.Create(flux)
 
     local tab = flux:AddTab("Settings", "rbxassetid://7733960981")
 
-    -- ── appearance ───────────────────────────────
+    -- appearence
     local appearGroup = flux:AddGroupbox(tab, "Appearance", 1)
 
     flux:AddLabel(appearGroup, "accent_label", "Accent Color")
 
     local presets = {
-        { name = "White",  color = Color3.fromRGB(255, 255, 255) },
-        { name = "Blue",   color = Color3.fromRGB(100, 149, 255) },
-        { name = "Purple", color = Color3.fromRGB(160, 100, 255) },
-        { name = "Red",    color = Color3.fromRGB(255, 90, 90)   },
-        { name = "Green",  color = Color3.fromRGB(90, 220, 130)  },
-        { name = "Orange", color = Color3.fromRGB(255, 160, 60)  },
+        {name = "White", color = Color3.fromRGB(255, 255, 255)},
+        {name = "Blue", color = Color3.fromRGB(100, 149, 255)},
+        {name = "Purple", color = Color3.fromRGB(160, 100, 255)},
+        {name = "Red", color = Color3.fromRGB(255, 90, 90)},
+        {name = "Green", color = Color3.fromRGB(90, 220, 130)},
+        {name = "Orange", color = Color3.fromRGB(255, 160, 60)},
     }
 
     local swatchRow = Instance.new("Frame")
@@ -96,7 +94,7 @@ function Settings.Create(flux)
         end
     end)
 
-    -- ── controls ─────────────────────────────────
+    -- controls
     local controlsGroup = flux:AddGroupbox(tab, "Controls", 2)
 
     local bindLabel = flux:AddLabel(controlsGroup, "keybind_label", "Keybind: " .. keycodeToString(flux.Config.Keybind))
@@ -134,7 +132,7 @@ function Settings.Create(flux)
         end)
     end)
 
-    -- ── config management ────────────────────────
+    -- manage config
     -- only shows if SetupConfig() was called before this tab was created
     local configGroup = flux:AddGroupbox(tab, "Configs", 1)
 
@@ -233,7 +231,7 @@ function Settings.Create(flux)
         end)
     end
 
-    -- ── about ─────────────────────────────────────
+    -- about
     local aboutGroup = flux:AddGroupbox(tab, "About", 2)
 
     flux:AddParagraph(aboutGroup, "about_text", "Flux UI Library",

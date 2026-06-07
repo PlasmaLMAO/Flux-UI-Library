@@ -1,7 +1,3 @@
--- all UI elements: Toggle, Slider, Button, Dropdown, Label, Paragraph, Divider, ColorPicker
--- every element returns an object with .Value and :SetValue() where it makes sense
--- elements that can be locked also have :Lock(reason) and :Unlock()
-
 local Elements = {}
 
 local TweenService = game:GetService("TweenService")
@@ -52,10 +48,7 @@ local function makeLockOverlay(container, theme)
     return lock, unlock
 end
 
--- ─────────────────────────────────────────────
---  Toggle
--- ─────────────────────────────────────────────
-
+-- toggle
 Elements.Toggle = {}
 
 function Elements.Toggle.new(groupbox, id, name, default, callback)
@@ -149,10 +142,7 @@ function Elements.Toggle.new(groupbox, id, name, default, callback)
     return element
 end
 
--- ─────────────────────────────────────────────
---  Slider
--- ─────────────────────────────────────────────
-
+-- slider
 Elements.Slider = {}
 
 function Elements.Slider.new(groupbox, id, name, min, max, default, suffix, callback)
@@ -287,10 +277,7 @@ function Elements.Slider.new(groupbox, id, name, min, max, default, suffix, call
     return element
 end
 
--- ─────────────────────────────────────────────
---  Button
--- ─────────────────────────────────────────────
-
+-- button
 Elements.Button = {}
 
 function Elements.Button.new(groupbox, id, name, callback)
@@ -353,10 +340,7 @@ function Elements.Button.new(groupbox, id, name, callback)
     return element
 end
 
--- ─────────────────────────────────────────────
---  Dropdown
--- ─────────────────────────────────────────────
-
+-- dropdown
 Elements.Dropdown = {}
 
 function Elements.Dropdown.new(groupbox, id, name, options, default, multi, callback)
@@ -633,10 +617,7 @@ function Elements.Dropdown.new(groupbox, id, name, options, default, multi, call
     return element
 end
 
--- ─────────────────────────────────────────────
---  Label
--- ─────────────────────────────────────────────
-
+-- label
 Elements.Label = {}
 
 function Elements.Label.new(groupbox, id, name)
@@ -667,10 +648,7 @@ function Elements.Label.new(groupbox, id, name)
     return element
 end
 
--- ─────────────────────────────────────────────
---  Paragraph
--- ─────────────────────────────────────────────
-
+-- paragraph
 Elements.Paragraph = {}
 
 function Elements.Paragraph.new(groupbox, id, title, content)
@@ -731,10 +709,7 @@ function Elements.Paragraph.new(groupbox, id, title, content)
     return element
 end
 
--- ─────────────────────────────────────────────
---  Divider
--- ─────────────────────────────────────────────
-
+-- divider
 Elements.Divider = {}
 
 function Elements.Divider.new(groupbox)
@@ -750,18 +725,8 @@ function Elements.Divider.new(groupbox)
     return { Line = line }
 end
 
--- ─────────────────────────────────────────────
---  ColorPicker
--- ─────────────────────────────────────────────
---
--- shows a small colored square next to a label.
--- clicking it opens a floating picker with:
---   - a saturation/value square
---   - a hue bar on the side
---   - hex input at the bottom
---
--- returns element.Value as a Color3
 
+-- colorpicker
 Elements.ColorPicker = {}
 
 function Elements.ColorPicker.new(groupbox, id, name, default, callback)
@@ -809,7 +774,7 @@ function Elements.ColorPicker.new(groupbox, id, name, default, callback)
     previewStroke.Thickness = 1
     previewStroke.Parent = preview
 
-    -- ── floating picker panel ─────────────────
+    -- floating picker
     local PICKER_W = 200
     local PICKER_H = 220
 
@@ -949,7 +914,7 @@ function Elements.ColorPicker.new(groupbox, id, name, default, callback)
     resultStripCorner.CornerRadius = UDim.new(0, 3)
     resultStripCorner.Parent = resultStrip
 
-    -- ── state ─────────────────────────────────
+    -- state
     local h, s, v = Color3.toHSV(default)
     local currentColor = default
     local isOpen = false

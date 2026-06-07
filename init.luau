@@ -27,11 +27,23 @@ Flux.__index = Flux
 
 local Players = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
-local RunService = game:GetService("RunService")
 local TweenService = game:GetService("TweenService")
+local HttpService = game:GetService("HttpService")
 local lp = Players.LocalPlayer
 
--- default theme, override any of these in Init()
+local BASE_URL = "https://raw.githubusercontent.com/PlasmaLMAO/Flux-UI-Library/main/"
+
+local moduleCache = {}
+
+local function load(path)
+    if moduleCache[path] then return moduleCache[path] end
+    local src = game:HttpGet(BASE_URL .. path)
+    local result = loadstring(src)()
+    moduleCache[path] = result
+    return result
+end
+
+-- default theme
 Flux.Theme = {
     Background = Color3.fromRGB(18, 18, 18),
     Surface = Color3.fromRGB(26, 26, 26),
@@ -59,17 +71,14 @@ Flux._window = nil
 Flux._dragging = false
 Flux._dragOffset = Vector2.new(0, 0)
 Flux._sessionStart = tick()
-Flux._elementRegistry = {} -- maps element instance name -> element object, used by config save/load
+Flux._elementRegistry = {}
 Flux._configFolder = nil
 
 local function tween(obj, props, t)
     TweenService:Create(obj, TweenInfo.new(t or 0.15, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), props):Play()
 end
 
--- ─────────────────────────────────────────────
---  window construction
--- ─────────────────────────────────────────────
-
+-- Build window
 function Flux:_buildWindow()
     local existing = lp.PlayerGui:FindFirstChild("FluxUI")
     if existing then existing:Destroy() end
@@ -102,7 +111,6 @@ function Flux:_buildWindow()
     windowStroke.Thickness = 1
     windowStroke.Parent = window
 
-    -- sidebar
     local sidebar = Instance.new("Frame")
     sidebar.Name = "Sidebar"
     sidebar.Size = UDim2.new(0, self.Config.SidebarWidth, 1, 0)
@@ -115,7 +123,6 @@ function Flux:_buildWindow()
     sidebarCorner.CornerRadius = UDim.new(0, 6)
     sidebarCorner.Parent = sidebar
 
-    -- covers the right rounded corners so the sidebar is flush on that side
     local sidebarFlush = Instance.new("Frame")
     sidebarFlush.Size = UDim2.new(0, 8, 1, 0)
     sidebarFlush.Position = UDim2.new(1, -8, 0, 0)
@@ -133,7 +140,6 @@ function Flux:_buildWindow()
     sidebarBorder.ZIndex = 3
     sidebarBorder.Parent = sidebar
 
-    -- tab icon list
     local tabList = Instance.new("Frame")
     tabList.Name = "TabList"
     tabList.Size = UDim2.new(1, 0, 1, -42)
@@ -153,7 +159,6 @@ function Flux:_buildWindow()
     tabListPadding.PaddingTop = UDim.new(0, 8)
     tabListPadding.Parent = tabList
 
-    -- settings icon pinned to the bottom of the sidebar
     local settingsPin = Instance.new("ImageButton")
     settingsPin.Name = "SettingsBtn"
     settingsPin.Size = UDim2.fromOffset(22, 22)
@@ -165,7 +170,6 @@ function Flux:_buildWindow()
     settingsPin.Parent = sidebar
     self._settingsBtn = settingsPin
 
-    -- content area
     local content = Instance.new("Frame")
     content.Name = "Content"
     content.Size = UDim2.new(1, -self.Config.SidebarWidth, 1, 0)
@@ -174,7 +178,6 @@ function Flux:_buildWindow()
     content.ClipsDescendants = true
     content.Parent = window
 
-    -- topbar (drag handle + tab title)
     local topbar = Instance.new("Frame")
     topbar.Name = "Topbar"
     topbar.Size = UDim2.new(1, 0, 0, 34)
@@ -201,7 +204,6 @@ function Flux:_buildWindow()
     tabTitle.TextXAlignment = Enum.TextXAlignment.Left
     tabTitle.Parent = topbar
 
-    -- scrollable page container
     local pageContainer = Instance.new("ScrollingFrame")
     pageContainer.Name = "PageContainer"
     pageContainer.Size = UDim2.new(1, 0, 1, -34)
@@ -215,7 +217,6 @@ function Flux:_buildWindow()
     pageContainer.Parent = content
     self._pageContainer = pageContainer
 
-    -- dragging
     local mouse = lp:GetMouse()
 
     topbar.InputBegan:Connect(function(input)
@@ -243,7 +244,6 @@ function Flux:_buildWindow()
         end
     end)
 
-    -- keybind toggle
     UserInputService.InputBegan:Connect(function(input, gpe)
         if gpe then return end
         if input.KeyCode == self.Config.Keybind then
@@ -254,10 +254,7 @@ function Flux:_buildWindow()
     return self
 end
 
--- ─────────────────────────────────────────────
---  public API
--- ─────────────────────────────────────────────
-
+-- api
 function Flux:Init(config)
     if config then
         for k, v in config do
@@ -275,7 +272,7 @@ function Flux:Init(config)
 end
 
 function Flux:AddTab(name, icon)
-    local Tabs = require(script.core.Tabs)
+    local Tabs = load("core/Tabs.luau")
     local tab = Tabs.new(self, name, icon)
     table.insert(self._tabs, tab)
 
@@ -388,73 +385,63 @@ function Flux:AddGroupbox(tab, name, column)
     return groupbox
 end
 
--- element wrappers
--- each one creates the element, registers it by its instance name so the
--- config system can find it later, then returns it to the caller
-
+-- elements
 function Flux:AddToggle(groupbox, id, name, default, callback)
-    local Elements = require(script.core.Elements)
+    local Elements = load("core/Elements.luau")
     local el = Elements.Toggle.new(groupbox, id, name, default, callback)
     self._elementRegistry["Toggle_" .. id] = el
     return el
 end
 
 function Flux:AddSlider(groupbox, id, name, min, max, default, suffix, callback)
-    local Elements = require(script.core.Elements)
+    local Elements = load("core/Elements.luau")
     local el = Elements.Slider.new(groupbox, id, name, min, max, default, suffix, callback)
     self._elementRegistry["Slider_" .. id] = el
     return el
 end
 
 function Flux:AddButton(groupbox, id, name, callback)
-    local Elements = require(script.core.Elements)
-    local el = Elements.Button.new(groupbox, id, name, callback)
-    -- buttons have no persistent state so no need to register them
-    return el
+    local Elements = load("core/Elements.luau")
+    return Elements.Button.new(groupbox, id, name, callback)
 end
 
 function Flux:AddDropdown(groupbox, id, name, options, default, multi, callback)
-    local Elements = require(script.core.Elements)
+    local Elements = load("core/Elements.luau")
     local el = Elements.Dropdown.new(groupbox, id, name, options, default, multi, callback)
     self._elementRegistry["Dropdown_" .. id] = el
     return el
 end
 
 function Flux:AddColorPicker(groupbox, id, name, default, callback)
-    local Elements = require(script.core.Elements)
+    local Elements = load("core/Elements.luau")
     local el = Elements.ColorPicker.new(groupbox, id, name, default, callback)
     self._elementRegistry["ColorPicker_" .. id] = el
     return el
 end
 
 function Flux:AddLabel(groupbox, id, name)
-    local Elements = require(script.core.Elements)
+    local Elements = load("core/Elements.luau")
     return Elements.Label.new(groupbox, id, name)
 end
 
 function Flux:AddParagraph(groupbox, id, title, content)
-    local Elements = require(script.core.Elements)
+    local Elements = load("core/Elements.luau")
     return Elements.Paragraph.new(groupbox, id, title, content)
 end
 
 function Flux:AddDivider(groupbox)
-    local Elements = require(script.core.Elements)
+    local Elements = load("core/Elements.luau")
     return Elements.Divider.new(groupbox)
 end
 
--- ─────────────────────────────────────────────
---  config system
--- ─────────────────────────────────────────────
-
--- sets up the config folder. call this before SaveConfig/LoadConfig.
--- configFolder is just the subfolder name, e.g. "MyScript"
+-- config
 function Flux:SetupConfig(configFolder)
-    local Config = require(script.core.Config)
+    local Config = load("core/Config.luau")
     Config.Setup(self, configFolder)
 end
 
 function Flux:SaveConfig(name)
-    local Config = require(script.core.Config)
+    local Config = load("core/Config.luau")
     local ok, err = Config.Save(self, name)
     if ok then
         self:Notify("Config Saved", name)
@@ -465,7 +452,7 @@ function Flux:SaveConfig(name)
 end
 
 function Flux:LoadConfig(name)
-    local Config = require(script.core.Config)
+    local Config = load("core/Config.luau")
     local ok, err = Config.Load(self, name)
     if ok then
         self:Notify("Config Loaded", name)
@@ -476,35 +463,31 @@ function Flux:LoadConfig(name)
 end
 
 function Flux:DeleteConfig(name)
-    local Config = require(script.core.Config)
+    local Config = load("core/Config.luau")
     return Config.Delete(self, name)
 end
 
 function Flux:ListConfigs()
-    local Config = require(script.core.Config)
+    local Config = load("core/Config.luau")
     return Config.List(self)
 end
 
 function Flux:SetAutoload(name)
-    local Config = require(script.core.Config)
+    local Config = load("core/Config.luau")
     return Config.SetAutoload(self, name)
 end
 
 function Flux:ClearAutoload()
-    local Config = require(script.core.Config)
+    local Config = load("core/Config.luau")
     return Config.ClearAutoload(self)
 end
 
--- call this at the end of your setup to auto-load whatever config was last saved
 function Flux:LoadAutoload()
-    local Config = require(script.core.Config)
+    local Config = load("core/Config.luau")
     return Config.LoadAutoload(self)
 end
 
--- ─────────────────────────────────────────────
---  notifications
--- ─────────────────────────────────────────────
-
+-- notifications
 function Flux:Notify(title, body, duration)
     duration = duration or 3
 

@@ -93,10 +93,7 @@ local function applyElements(flux, data)
     end
 end
 
--- ─────────────────────────────────────────────
---  public API
--- ─────────────────────────────────────────────
-
+-- api
 function Config.Setup(flux, configFolder)
     flux._configFolder = configFolder
 
